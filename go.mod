@@ -1,4 +1,4 @@
-module 10.1.20.149/dropboks/sharedlib
+module 10.1.20.149/dropping/sharedlib
 
 go 1.24.2
 
