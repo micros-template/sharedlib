@@ -3,6 +3,8 @@ package helper
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/spf13/viper"
 	"github.com/testcontainers/testcontainers-go"
@@ -15,6 +17,14 @@ type NatsContainer struct {
 
 func StartNatsContainer(ctx context.Context, sharedNetwork, version string) (*NatsContainer, error) {
 	image := fmt.Sprintf("nats:%s", version)
+
+	// Read the NATS configuration file content
+	natsConfigPath := viper.GetString("script.nats_server")
+	natsConfigContent, err := os.ReadFile(natsConfigPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read NATS config file: %w", err)
+	}
+
 	req := testcontainers.ContainerRequest{
 		Name:         "nats",
 		Image:        image,
@@ -32,7 +42,7 @@ func StartNatsContainer(ctx context.Context, sharedNetwork, version string) (*Na
 		},
 		Files: []testcontainers.ContainerFile{
 			{
-				HostFilePath:      viper.GetString("script.nats_server"),
+				Reader:            strings.NewReader(string(natsConfigContent)),
 				ContainerFilePath: "/etc/nats/nats.conf",
 				FileMode:          0644,
 			},

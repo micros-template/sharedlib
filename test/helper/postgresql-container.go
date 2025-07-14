@@ -3,6 +3,8 @@ package helper
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -16,6 +18,13 @@ type PostgresContainer struct {
 
 func StartPostgresContainer(ctx context.Context, sharedNetwork, name, version string) (*PostgresContainer, error) {
 	image := fmt.Sprintf("postgres:%s", version)
+
+	initSqlPath := viper.GetString("script.init_sql")
+	initSqlContent, err := os.ReadFile(initSqlPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read init SQL file: %w", err)
+	}
+
 	req := testcontainers.ContainerRequest{
 		Name:         name,
 		Image:        image,
@@ -30,7 +39,7 @@ func StartPostgresContainer(ctx context.Context, sharedNetwork, name, version st
 			WithOccurrence(2).WithStartupTimeout(5 * time.Second),
 		Files: []testcontainers.ContainerFile{
 			{
-				HostFilePath:      viper.GetString("script.init_sql"),
+				Reader:            strings.NewReader(string(initSqlContent)),
 				ContainerFilePath: "/docker-entrypoint-initdb.d/init-db.sql",
 				FileMode:          0644,
 			},
