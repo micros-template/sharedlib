@@ -64,7 +64,7 @@ func StartGatewayContainer(ctx context.Context, sharedNetwork, version string) (
 		return nil, err
 	}
 
-	_, err = container.MappedPort(ctx, "4221")
+	_, err = container.MappedPort(ctx, "80")
 	if err != nil {
 		container.Terminate(ctx)
 		return nil, err
