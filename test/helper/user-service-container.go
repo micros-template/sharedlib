@@ -14,7 +14,7 @@ type UserServiceContainer struct {
 }
 
 func StartUserServiceContainer(ctx context.Context, sharedNetwork, version string) (*UserServiceContainer, error) {
-	image := fmt.Sprintf("10.1.20.130/dropping/user_service:%s", version)
+	image := fmt.Sprintf("10.1.20.130:5001/dropping/user-service:%s", version)
 	req := testcontainers.ContainerRequest{
 		Name:         "test_user_service",
 		Image:        image,

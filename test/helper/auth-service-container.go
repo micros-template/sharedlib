@@ -14,7 +14,7 @@ type AuthServiceContainer struct {
 }
 
 func StartAuthServiceContainer(ctx context.Context, sharedNetwork, version string) (*AuthServiceContainer, error) {
-	image := fmt.Sprintf("10.1.20.130/dropping/auth_service:%s", version)
+	image := fmt.Sprintf("10.1.20.130:5001/dropping/auth-service:%s", version)
 	req := testcontainers.ContainerRequest{
 		Name:         "test_auth_service",
 		Image:        image,
