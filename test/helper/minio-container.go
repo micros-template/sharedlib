@@ -17,7 +17,7 @@ type MinioContainer struct {
 func StartMinioContainer(ctx context.Context, sharedNetwork, version string) (*MinioContainer, error) {
 	minioImage := fmt.Sprintf("minio/minio:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:         "test_minio",
+		Name:         "test-minio",
 		Image:        minioImage,
 		ExposedPorts: []string{"9000/tcp"},
 		Env: map[string]string{
