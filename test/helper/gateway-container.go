@@ -24,6 +24,12 @@ func StartGatewayContainer(ctx context.Context, sharedNetwork, version string) (
 		return nil, fmt.Errorf("failed to read nginx config file: %w", err)
 	}
 
+	grpcErrorConfigPath := viper.GetString("script.grpc_error")
+	grpcErrorConfigContent, err := os.ReadFile(grpcErrorConfigPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read error.grpc_conf file: %w", err)
+	}
+
 	req := testcontainers.ContainerRequest{
 		Name:         "test_gateway",
 		Image:        image,
@@ -34,6 +40,11 @@ func StartGatewayContainer(ctx context.Context, sharedNetwork, version string) (
 			{
 				Reader:            strings.NewReader(string(nginxConfigContent)),
 				ContainerFilePath: "/etc/nginx/conf.d/default.conf",
+				FileMode:          0644,
+			},
+			{
+				Reader:            strings.NewReader(string(grpcErrorConfigContent)),
+				ContainerFilePath: "/etc/nginx/conf.d/errors.grpc_conf",
 				FileMode:          0644,
 			},
 		},
