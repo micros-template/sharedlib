@@ -16,9 +16,9 @@ type AuthServiceContainer struct {
 func StartAuthServiceContainer(ctx context.Context, sharedNetwork, version string) (*AuthServiceContainer, error) {
 	image := fmt.Sprintf("auth_service:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:         "auth_service",
+		Name:         "test_auth_service",
 		Image:        image,
-		ExposedPorts: []string{"8081:8081/tcp"},
+		ExposedPorts: []string{"8081/tcp"},
 		Env:          map[string]string{"ENV": "test"},
 		Networks:     []string{sharedNetwork},
 		Cmd:          []string{"/auth_service"},

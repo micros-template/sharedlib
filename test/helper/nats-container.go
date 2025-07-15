@@ -18,7 +18,6 @@ type NatsContainer struct {
 func StartNatsContainer(ctx context.Context, sharedNetwork, version string) (*NatsContainer, error) {
 	image := fmt.Sprintf("nats:%s", version)
 
-	// Read the NATS configuration file content
 	natsConfigPath := viper.GetString("script.nats_server")
 	natsConfigContent, err := os.ReadFile(natsConfigPath)
 	if err != nil {
@@ -26,7 +25,7 @@ func StartNatsContainer(ctx context.Context, sharedNetwork, version string) (*Na
 	}
 
 	req := testcontainers.ContainerRequest{
-		Name:         "nats",
+		Name:         "test_nats",
 		Image:        image,
 		ExposedPorts: []string{"4221/tcp"},
 		WaitingFor:   wait.ForLog("Server is ready"),

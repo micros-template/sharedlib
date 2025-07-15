@@ -16,7 +16,7 @@ type NotificationServiceContainer struct {
 func StartNotificationServiceContainer(ctx context.Context, sharedNetwork, version string) (*NotificationServiceContainer, error) {
 	image := fmt.Sprintf("notification_service:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:       "notification_service",
+		Name:       "test_notification_service",
 		Image:      image,
 		Env:        map[string]string{"ENV": "test"},
 		Networks:   []string{sharedNetwork},

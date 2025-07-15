@@ -16,9 +16,9 @@ type FileServiceContainer struct {
 func StartFileServiceContainer(ctx context.Context, sharedNetwork, version string) (*FileServiceContainer, error) {
 	image := fmt.Sprintf("file_service:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:         "file_service",
+		Name:         "test_file_service",
 		Image:        image,
-		ExposedPorts: []string{"50052:50051/tcp"},
+		ExposedPorts: []string{"50051/tcp"},
 		Env:          map[string]string{"ENV": "test"},
 		Networks:     []string{sharedNetwork},
 		Cmd:          []string{"/file_service"},

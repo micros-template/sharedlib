@@ -16,7 +16,7 @@ type RedisContainer struct {
 func StartRedisContainer(ctx context.Context, sharedNetwork, version string) (*RedisContainer, error) {
 	image := fmt.Sprintf("redis:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:         "redis",
+		Name:         "test_redis",
 		Image:        image,
 		ExposedPorts: []string{"6379/tcp"},
 		Env: map[string]string{

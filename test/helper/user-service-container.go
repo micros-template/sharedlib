@@ -16,9 +16,9 @@ type UserServiceContainer struct {
 func StartUserServiceContainer(ctx context.Context, sharedNetwork, version string) (*UserServiceContainer, error) {
 	image := fmt.Sprintf("user_service:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:         "user_service",
+		Name:         "test_user_service",
 		Image:        image,
-		ExposedPorts: []string{"50051:50051/tcp", "8082:8081/tcp"},
+		ExposedPorts: []string{"50051/tcp", "8081/tcp"},
 		Env:          map[string]string{"ENV": "test"},
 		Networks:     []string{sharedNetwork},
 		Cmd:          []string{"/user_service"},
