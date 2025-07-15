@@ -14,7 +14,7 @@ type FileServiceContainer struct {
 }
 
 func StartFileServiceContainer(ctx context.Context, sharedNetwork, version string) (*FileServiceContainer, error) {
-	image := fmt.Sprintf("file_service:%s", version)
+	image := fmt.Sprintf("10.1.20.130/dropping/file_service:%s", version)
 	req := testcontainers.ContainerRequest{
 		Name:         "test_file_service",
 		Image:        image,
