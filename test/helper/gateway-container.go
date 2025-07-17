@@ -33,7 +33,7 @@ func StartGatewayContainer(ctx context.Context, sharedNetwork, version string) (
 	req := testcontainers.ContainerRequest{
 		Name:         "test_gateway",
 		Image:        image,
-		ExposedPorts: []string{"9090:80/tcp"},
+		ExposedPorts: []string{"9090:80/tcp, 50051:50051/tcp"},
 		WaitingFor:   wait.ForLog("Configuration complete; ready for start up"),
 		Networks:     []string{sharedNetwork},
 		Files: []testcontainers.ContainerFile{
