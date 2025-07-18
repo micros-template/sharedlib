@@ -27,7 +27,7 @@ func StartNatsContainer(ctx context.Context, sharedNetwork, version string) (*Na
 	req := testcontainers.ContainerRequest{
 		Name:         "test_nats",
 		Image:        image,
-		ExposedPorts: []string{"4221/tcp"},
+		ExposedPorts: []string{"4221:4221/tcp"},
 		WaitingFor:   wait.ForLog("Server is ready"),
 		Env: map[string]string{
 			"NATS_USER":     viper.GetString("minio.credential.user"),
