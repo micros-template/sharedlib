@@ -16,12 +16,13 @@ type NotificationServiceContainer struct {
 func StartNotificationServiceContainer(ctx context.Context, sharedNetwork, version string) (*NotificationServiceContainer, error) {
 	image := fmt.Sprintf("10.1.20.130:5001/dropping/notification-service:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:       "test_notification_service",
-		Image:      image,
-		Env:        map[string]string{"ENV": "test"},
-		Networks:   []string{sharedNetwork},
-		Cmd:        []string{"/notification_service"},
-		WaitingFor: wait.ForLog("subscriber for notification is running").WithStartupTimeout(30 * time.Second),
+		Name:         "test_notification_service",
+		Image:        image,
+		Env:          map[string]string{"ENV": "test"},
+		Networks:     []string{sharedNetwork},
+		Cmd:          []string{"/notification_service"},
+		ExposedPorts: []string{},
+		WaitingFor:   wait.ForLog("subscriber for notification is running").WithStartupTimeout(30 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
