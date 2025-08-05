@@ -26,6 +26,8 @@ func StartMinioContainer(ctx context.Context, sharedNetwork, version string) (*M
 		Networks:   []string{sharedNetwork},
 		Cmd:        []string{"server", "/data"},
 		WaitingFor: wait.ForLog("API:").WithStartupTimeout(30 * time.Second),
+		ExposedPorts: []string{},
+
 	}
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,

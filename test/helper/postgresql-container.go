@@ -26,8 +26,8 @@ func StartPostgresContainer(ctx context.Context, sharedNetwork, name, version st
 	}
 
 	req := testcontainers.ContainerRequest{
-		Name:         name,
-		Image:        image,
+		Name:  name,
+		Image: image,
 		Env: map[string]string{
 			"POSTGRES_DB":       viper.GetString("database.name"),
 			"POSTGRES_USER":     viper.GetString("database.user"),
@@ -43,6 +43,7 @@ func StartPostgresContainer(ctx context.Context, sharedNetwork, name, version st
 				FileMode:          0644,
 			},
 		},
+		ExposedPorts: []string{},
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

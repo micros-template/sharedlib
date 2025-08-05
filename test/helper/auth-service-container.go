@@ -21,6 +21,7 @@ func StartAuthServiceContainer(ctx context.Context, sharedNetwork, version strin
 		Env:        map[string]string{"ENV": "test"},
 		Networks:   []string{sharedNetwork},
 		Cmd:        []string{"/auth_service"},
+		ExposedPorts: []string{},
 		WaitingFor: wait.ForLog("HTTP Server Starting in port").WithStartupTimeout(30 * time.Second),
 	}
 

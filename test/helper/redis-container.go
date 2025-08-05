@@ -21,9 +21,10 @@ func StartRedisContainer(ctx context.Context, sharedNetwork, version string) (*R
 		Env: map[string]string{
 			"REDIS_PASSWORD": viper.GetString("redis.password"),
 		},
-		Networks:   []string{sharedNetwork},
-		Cmd:        []string{"redis-server", "--requirepass", viper.GetString("redis.password")},
-		WaitingFor: wait.ForListeningPort("6379/tcp"),
+		Networks:     []string{sharedNetwork},
+		Cmd:          []string{"redis-server", "--requirepass", viper.GetString("redis.password")},
+		WaitingFor:   wait.ForListeningPort("6379/tcp"),
+		ExposedPorts: []string{},
 	}
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,

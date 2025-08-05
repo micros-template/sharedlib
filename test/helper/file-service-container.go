@@ -21,6 +21,7 @@ func StartFileServiceContainer(ctx context.Context, sharedNetwork, version strin
 		Env:        map[string]string{"ENV": "test"},
 		Networks:   []string{sharedNetwork},
 		Cmd:        []string{"/file_service"},
+		ExposedPorts: []string{},
 		WaitingFor: wait.ForLog("gRPC server running in port").WithStartupTimeout(30 * time.Second),
 	}
 
