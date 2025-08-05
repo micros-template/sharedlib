@@ -16,9 +16,8 @@ type RedisContainer struct {
 func StartRedisContainer(ctx context.Context, sharedNetwork, version string) (*RedisContainer, error) {
 	image := fmt.Sprintf("redis:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:         "test_redis",
-		Image:        image,
-		ExposedPorts: []string{"6379/tcp"},
+		Name:  "test_redis",
+		Image: image,
 		Env: map[string]string{
 			"REDIS_PASSWORD": viper.GetString("redis.password"),
 		},

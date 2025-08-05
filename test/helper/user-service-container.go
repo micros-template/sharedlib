@@ -16,13 +16,12 @@ type UserServiceContainer struct {
 func StartUserServiceContainer(ctx context.Context, sharedNetwork, version string) (*UserServiceContainer, error) {
 	image := fmt.Sprintf("10.1.20.130:5001/dropping/user-service:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:         "test_user_service",
-		Image:        image,
-		ExposedPorts: []string{"50051/tcp", "8081/tcp"},
-		Env:          map[string]string{"ENV": "test"},
-		Networks:     []string{sharedNetwork},
-		Cmd:          []string{"/user_service"},
-		WaitingFor:   wait.ForLog("gRPC server running in port").WithStartupTimeout(30 * time.Second),
+		Name:       "test_user_service",
+		Image:      image,
+		Env:        map[string]string{"ENV": "test"},
+		Networks:   []string{sharedNetwork},
+		Cmd:        []string{"/user_service"},
+		WaitingFor: wait.ForLog("gRPC server running in port").WithStartupTimeout(30 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

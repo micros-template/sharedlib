@@ -17,9 +17,8 @@ type MinioContainer struct {
 func StartMinioContainer(ctx context.Context, sharedNetwork, version string) (*MinioContainer, error) {
 	minioImage := fmt.Sprintf("minio/minio:%s", version)
 	req := testcontainers.ContainerRequest{
-		Name:         "test-minio",
-		Image:        minioImage,
-		ExposedPorts: []string{"9000/tcp"},
+		Name:  "test-minio",
+		Image: minioImage,
 		Env: map[string]string{
 			"MINIO_ROOT_USER":     viper.GetString("minio.credential.user"),
 			"MINIO_ROOT_PASSWORD": viper.GetString("minio.credential.password"),

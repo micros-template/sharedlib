@@ -28,7 +28,6 @@ func StartPostgresContainer(ctx context.Context, sharedNetwork, name, version st
 	req := testcontainers.ContainerRequest{
 		Name:         name,
 		Image:        image,
-		ExposedPorts: []string{"5432/tcp"},
 		Env: map[string]string{
 			"POSTGRES_DB":       viper.GetString("database.name"),
 			"POSTGRES_USER":     viper.GetString("database.user"),
