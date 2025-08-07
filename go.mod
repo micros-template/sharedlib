@@ -3,7 +3,7 @@ module 10.1.20.130/dropping/sharedlib
 go 1.24.2
 
 require (
-	10.1.20.130/dropping/log-management v0.0.0-20250807062425-1ab112a21d37
+	10.1.20.130/dropping/log-management v0.0.0-20250807080310-1baf1b5d0e0e
 	github.com/gin-gonic/gin v1.10.1
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.20.1

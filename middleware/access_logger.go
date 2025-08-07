@@ -66,9 +66,10 @@ func AccessLogger(logEmitter pkg.LogEmitter, serviceName string, loger zerolog.L
 		}
 		logDataBytes, _ := json.Marshal(logData)
 		logEmitter.EmitLog(c.Request.Context(), ld.LogMessage{
-			Type:    logLevel,
-			Service: serviceName,
-			Msg:     string(logDataBytes),
+			Type:     logLevel,
+			Service:  serviceName,
+			Msg:      string(logDataBytes),
+			Protocol: "HTTP",
 		})
 	}
 }

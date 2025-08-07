@@ -1,9 +1,5 @@
-10.1.20.130/dropping/log-management v0.0.0-20250807060951-bd5787f63bba h1:SVz1VDe7adru574He7aWUL/mtb79vKck0LRBfStHtrQ=
-10.1.20.130/dropping/log-management v0.0.0-20250807060951-bd5787f63bba/go.mod h1:ItjbqbcyRsCnR/bU7tY9Jsgw2QVM8gnYL4FGFBFl/LY=
-10.1.20.130/dropping/log-management v0.0.0-20250807062126-ab7d538894e4 h1:D2IccNz/nh/LgkAWVIjQwxXVh2WRgtjEYYCzdupH1Sw=
-10.1.20.130/dropping/log-management v0.0.0-20250807062126-ab7d538894e4/go.mod h1:ItjbqbcyRsCnR/bU7tY9Jsgw2QVM8gnYL4FGFBFl/LY=
-10.1.20.130/dropping/log-management v0.0.0-20250807062425-1ab112a21d37 h1:ol/yQvIY3hDgneAarVOyvbULj1IC/YwYUI+9Aj9cBJI=
-10.1.20.130/dropping/log-management v0.0.0-20250807062425-1ab112a21d37/go.mod h1:ItjbqbcyRsCnR/bU7tY9Jsgw2QVM8gnYL4FGFBFl/LY=
+10.1.20.130/dropping/log-management v0.0.0-20250807080310-1baf1b5d0e0e h1:J4B5h871mDV2kqWYKqauGQlsGcvmWJRkW100SiO6g/g=
+10.1.20.130/dropping/log-management v0.0.0-20250807080310-1baf1b5d0e0e/go.mod h1:ItjbqbcyRsCnR/bU7tY9Jsgw2QVM8gnYL4FGFBFl/LY=
 dario.cat/mergo v1.0.2 h1:85+piFYR1tMbRrLcDwR18y4UKJ3aH1Tbzi24VRW1TK8=
 dario.cat/mergo v1.0.2/go.mod h1:E/hbnu0NxMFBjpMIE34DRGLWqDy0g5FuKDhCb31ngxA=
 github.com/AdaLogics/go-fuzz-headers v0.0.0-20240806141605-e8a1dd7889d6 h1:He8afgbRMd7mFxO99hRNu+6tazq8nFF9lIwo9JFroBk=
