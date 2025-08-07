@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"10.1.20.130/dropping/log-management/pkg"
+	ld "10.1.20.130/dropping/log-management/pkg/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
@@ -12,7 +14,7 @@ type userData struct {
 	UserID string `json:"user_id"`
 }
 
-func AccessLogger(loger zerolog.Logger) gin.HandlerFunc {
+func AccessLogger(logEmitter pkg.LogEmitter, serviceName string, loger zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
@@ -47,15 +49,26 @@ func AccessLogger(loger zerolog.Logger) gin.HandlerFunc {
 			}
 		}
 
-		loger.Info().
-			Str("type", "access").
-			Int("status", statusCode).
-			Str("method", method).
-			Str("path", path).
-			Str("ip", clientIP).
-			Str("user_agent", userAgent).
-			Str("user_id", userDataID).
-			Dur("latency", duration).
-			Msg("incoming request")
+		logLevel := "INFO"
+		if statusCode >= 400 && statusCode < 600 {
+			logLevel = "ERR"
+		}
+		logData := map[string]interface{}{
+			"type":       "access",
+			"status":     statusCode,
+			"method":     method,
+			"path":       path,
+			"ip":         clientIP,
+			"user_agent": userAgent,
+			"user_id":    userDataID,
+			"latency":    duration.String(),
+			"level":      logLevel,
+		}
+		logDataBytes, _ := json.Marshal(logData)
+		logEmitter.EmitLog(c.Request.Context(), ld.LogMessage{
+			Type:    logLevel,
+			Service: serviceName,
+			Msg:     string(logDataBytes),
+		})
 	}
 }
