@@ -10,11 +10,11 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-type NatsContainer struct {
+type MessageQueueContainer struct {
 	Container testcontainers.Container
 }
 
-func StartMessageQueueContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal, mqConfigPath, mqInsideConfigPath string, mappedPort, cmd []string, env map[string]string) (*NatsContainer, error) {
+func StartMessageQueueContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal, mqConfigPath, mqInsideConfigPath string, mappedPort, cmd []string, env map[string]string) (*MessageQueueContainer, error) {
 
 	natsConfigContent, err := os.ReadFile(mqConfigPath)
 	if err != nil {
@@ -52,12 +52,12 @@ func StartMessageQueueContainer(ctx context.Context, sharedNetwork, imageName, c
 		return nil, err
 	}
 
-	return &NatsContainer{
+	return &MessageQueueContainer{
 		Container: container,
 	}, nil
 }
 
-func (n *NatsContainer) Terminate(ctx context.Context) error {
+func (n *MessageQueueContainer) Terminate(ctx context.Context) error {
 	if n.Container != nil {
 		return n.Container.Terminate(ctx)
 	}
