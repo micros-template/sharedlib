@@ -13,16 +13,14 @@ type AuthServiceContainer struct {
 	Container testcontainers.Container
 }
 
-func StartAuthServiceContainer(ctx context.Context, sharedNetwork, version string) (*AuthServiceContainer, error) {
-	image := fmt.Sprintf("10.1.20.130:5001/dropping/auth-service:%s", version)
+func StartAuthServiceContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*AuthServiceContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:       "test_auth_service",
-		Image:      image,
-		Env:        map[string]string{"ENV": "test"},
+		Name:       containerName,
+		Image:      imageName,
+		Env:        env,
 		Networks:   []string{sharedNetwork},
-		Cmd:        []string{"/auth_service"},
-		ExposedPorts: []string{},
-		WaitingFor: wait.ForLog("HTTP Server Starting in port").WithStartupTimeout(30 * time.Second),
+		Cmd:        cmd,
+		WaitingFor: wait.ForLog(waitingSignal).WithStartupTimeout(30 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -30,7 +28,7 @@ func StartAuthServiceContainer(ctx context.Context, sharedNetwork, version strin
 		Started:          true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start auth service container: %w", err)
 	}
 
 	return &AuthServiceContainer{

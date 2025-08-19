@@ -9,11 +9,11 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-type NotificationServiceContainer struct {
-	Container testcontainers.Container
+type StorageContainer struct {
+	testcontainers.Container
 }
 
-func StartNotificationServiceContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*NotificationServiceContainer, error) {
+func StartStorageContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*StorageContainer, error) {
 	req := testcontainers.ContainerRequest{
 		Name:       containerName,
 		Image:      imageName,
@@ -22,23 +22,28 @@ func StartNotificationServiceContainer(ctx context.Context, sharedNetwork, image
 		Cmd:        cmd,
 		WaitingFor: wait.ForLog(waitingSignal).WithStartupTimeout(30 * time.Second),
 	}
-
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to start mail container: %w", err)
+		return nil, fmt.Errorf("failed to start storage container: %w", err)
 	}
 
-	return &NotificationServiceContainer{
+	_, err = container.Host(ctx)
+	if err != nil {
+		container.Terminate(ctx)
+		return nil, err
+	}
+
+	return &StorageContainer{
 		Container: container,
 	}, nil
 }
 
-func (f *NotificationServiceContainer) Terminate(ctx context.Context) error {
-	if f.Container != nil {
-		return f.Container.Terminate(ctx)
+func (mc *StorageContainer) Terminate(ctx context.Context) error {
+	if mc.Container != nil {
+		return mc.Container.Terminate(ctx)
 	}
 	return nil
 }

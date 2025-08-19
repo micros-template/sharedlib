@@ -7,39 +7,32 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-type PostgresContainer struct {
+type SQLContainer struct {
 	Container testcontainers.Container
 }
 
-func StartPostgresContainer(ctx context.Context, sharedNetwork, name, version string) (*PostgresContainer, error) {
-	image := fmt.Sprintf("postgres:%s", version)
+func StartSQLContainer(ctx context.Context, sharedNetwork, imageName, containerName, sqlInitScriptPath, sqlInitInsideScriptPath, waitingSignal string, env map[string]string) (*SQLContainer, error) {
 
-	initSqlPath := viper.GetString("script.init_sql")
-	initSqlContent, err := os.ReadFile(initSqlPath)
+	initSqlContent, err := os.ReadFile(sqlInitScriptPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read init SQL file: %w", err)
 	}
 
 	req := testcontainers.ContainerRequest{
-		Name:  name,
-		Image: image,
-		Env: map[string]string{
-			"POSTGRES_DB":       viper.GetString("database.name"),
-			"POSTGRES_USER":     viper.GetString("database.user"),
-			"POSTGRES_PASSWORD": viper.GetString("database.password"),
-		},
+		Name:     containerName,
+		Image:    imageName,
+		Env:      env,
 		Networks: []string{sharedNetwork},
-		WaitingFor: wait.ForLog("database system is ready to accept connections").
+		WaitingFor: wait.ForLog(waitingSignal).
 			WithOccurrence(2).WithStartupTimeout(5 * time.Second),
 		Files: []testcontainers.ContainerFile{
 			{
 				Reader:            strings.NewReader(string(initSqlContent)),
-				ContainerFilePath: "/docker-entrypoint-initdb.d/init-db.sql",
+				ContainerFilePath: sqlInitInsideScriptPath,
 				FileMode:          0644,
 			},
 		},
@@ -51,7 +44,7 @@ func StartPostgresContainer(ctx context.Context, sharedNetwork, name, version st
 		Started:          true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start SQL container: %w", err)
 	}
 
 	_, err = container.Host(ctx)
@@ -60,18 +53,12 @@ func StartPostgresContainer(ctx context.Context, sharedNetwork, name, version st
 		return nil, err
 	}
 
-	_, err = container.MappedPort(ctx, "5432")
-	if err != nil {
-		container.Terminate(ctx)
-		return nil, err
-	}
-
-	return &PostgresContainer{
+	return &SQLContainer{
 		Container: container,
 	}, nil
 }
 
-func (p *PostgresContainer) Terminate(ctx context.Context) error {
+func (p *SQLContainer) Terminate(ctx context.Context) error {
 	if p.Container != nil {
 		return p.Container.Terminate(ctx)
 	}

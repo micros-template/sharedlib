@@ -4,29 +4,29 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-type MailhogContainer struct {
+type MailContainer struct {
 	testcontainers.Container
 }
 
-func StartMailhogContainer(ctx context.Context, networkName, version string) (*MailhogContainer, error) {
-	image := fmt.Sprintf("mailhog/mailhog:%s", version)
+func StartMailContainer(ctx context.Context, networkName, imageName, containerName, waitingSignal string, mappedPort []string) (*MailContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:         "mailhog",
-		Image:        image,
-		ExposedPorts: []string{"1025:1025/tcp", "8025:8025/tcp"},
+		Name:         containerName,
+		Image:        imageName,
+		ExposedPorts: mappedPort,
 		Networks:     []string{networkName},
-		WaitingFor:   wait.ForListeningPort("1025/tcp"),
+		WaitingFor:   wait.ForListeningPort(nat.Port(waitingSignal)),
 	}
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start mail container: %w", err)
 	}
 
 	_, err = container.Host(ctx)
@@ -34,17 +34,17 @@ func StartMailhogContainer(ctx context.Context, networkName, version string) (*M
 		return nil, err
 	}
 
-	_, err = container.MappedPort(ctx, "1025")
+	_, err = container.MappedPort(ctx, nat.Port(waitingSignal))
 	if err != nil {
 		return nil, err
 	}
 
-	return &MailhogContainer{
+	return &MailContainer{
 		Container: container,
 	}, nil
 }
 
-func (m *MailhogContainer) Terminate(ctx context.Context) error {
+func (m *MailContainer) Terminate(ctx context.Context) error {
 	if m.Container != nil {
 		return m.Container.Terminate(ctx)
 	}

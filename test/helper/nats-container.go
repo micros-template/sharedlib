@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spf13/viper"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -15,34 +14,25 @@ type NatsContainer struct {
 	Container testcontainers.Container
 }
 
-func StartNatsContainer(ctx context.Context, sharedNetwork, version string) (*NatsContainer, error) {
-	image := fmt.Sprintf("nats:%s", version)
+func StartMessageQueueContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal, mqConfigPath, mqInsideConfigPath string, mappedPort, cmd []string, env map[string]string) (*NatsContainer, error) {
 
-	natsConfigPath := viper.GetString("script.nats_server")
-	natsConfigContent, err := os.ReadFile(natsConfigPath)
+	natsConfigContent, err := os.ReadFile(mqConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read NATS config file: %w", err)
 	}
 
 	req := testcontainers.ContainerRequest{
-		Name:         "test_nats",
-		Image:        image,
-		ExposedPorts: []string{"4221:4221/tcp"},
-		WaitingFor:   wait.ForLog("Server is ready"),
-		Env: map[string]string{
-			"NATS_USER":     viper.GetString("minio.credential.user"),
-			"NATS_PASSWORD": viper.GetString("minio.credential.password"),
-		},
-		Networks: []string{sharedNetwork},
-		Cmd: []string{
-			"-c", "/etc/nats/nats.conf",
-			"--name", "nats",
-			"-p", "4221",
-		},
+		Name:         containerName,
+		Image:        imageName,
+		ExposedPorts: mappedPort,
+		WaitingFor:   wait.ForLog(waitingSignal),
+		Env:          env,
+		Networks:     []string{sharedNetwork},
+		Cmd:          cmd,
 		Files: []testcontainers.ContainerFile{
 			{
 				Reader:            strings.NewReader(string(natsConfigContent)),
-				ContainerFilePath: "/etc/nats/nats.conf",
+				ContainerFilePath: mqInsideConfigPath,
 				FileMode:          0644,
 			},
 		},
@@ -53,16 +43,10 @@ func StartNatsContainer(ctx context.Context, sharedNetwork, version string) (*Na
 		Started:          true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start message queue container: %w", err)
 	}
 
 	_, err = container.Host(ctx)
-	if err != nil {
-		container.Terminate(ctx)
-		return nil, err
-	}
-
-	_, err = container.MappedPort(ctx, "4221")
 	if err != nil {
 		container.Terminate(ctx)
 		return nil, err

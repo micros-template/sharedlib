@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spf13/viper"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -15,36 +14,31 @@ type GatewayContainer struct {
 	Container testcontainers.Container
 }
 
-func StartGatewayContainer(ctx context.Context, sharedNetwork, version string) (*GatewayContainer, error) {
-	image := fmt.Sprintf("nginx:%s", version)
-
-	nginxConfigPath := viper.GetString("script.nginx")
+func StartGatewayContainer(ctx context.Context, sharedNetwork, imageName, containerName, nginxConfigPath, nginxInsideConfigPath, grpcErrorConfigPath, grpcErrorInsideConfigPath, waitingSignal string, mappedPort []string) (*GatewayContainer, error) {
 	nginxConfigContent, err := os.ReadFile(nginxConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read nginx config file: %w", err)
 	}
 
-	grpcErrorConfigPath := viper.GetString("script.grpc_error")
 	grpcErrorConfigContent, err := os.ReadFile(grpcErrorConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read error.grpc_conf file: %w", err)
 	}
-
 	req := testcontainers.ContainerRequest{
-		Name:         "test_gateway",
-		Image:        image,
-		ExposedPorts: []string{"9090:80/tcp", "50051:50051/tcp"},
-		WaitingFor:   wait.ForLog("Configuration complete; ready for start up"),
+		Name:         containerName,
+		Image:        imageName,
+		ExposedPorts: mappedPort,
+		WaitingFor:   wait.ForLog(waitingSignal),
 		Networks:     []string{sharedNetwork},
 		Files: []testcontainers.ContainerFile{
 			{
 				Reader:            strings.NewReader(string(nginxConfigContent)),
-				ContainerFilePath: "/etc/nginx/conf.d/default.conf",
+				ContainerFilePath: nginxInsideConfigPath,
 				FileMode:          0644,
 			},
 			{
 				Reader:            strings.NewReader(string(grpcErrorConfigContent)),
-				ContainerFilePath: "/etc/nginx/conf.d/errors.grpc_conf",
+				ContainerFilePath: grpcErrorInsideConfigPath,
 				FileMode:          0644,
 			},
 		},
@@ -55,16 +49,11 @@ func StartGatewayContainer(ctx context.Context, sharedNetwork, version string) (
 		Started:          true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start gateway container: %w", err)
+
 	}
 
 	_, err = container.Host(ctx)
-	if err != nil {
-		container.Terminate(ctx)
-		return nil, err
-	}
-
-	_, err = container.MappedPort(ctx, "80")
 	if err != nil {
 		container.Terminate(ctx)
 		return nil, err

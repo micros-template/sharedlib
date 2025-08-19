@@ -4,26 +4,23 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/spf13/viper"
+	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-type RedisContainer struct {
+type CacheContainer struct {
 	testcontainers.Container
 }
 
-func StartRedisContainer(ctx context.Context, sharedNetwork, version string) (*RedisContainer, error) {
-	image := fmt.Sprintf("redis:%s", version)
+func StartCacheContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*CacheContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:  "test_redis",
-		Image: image,
-		Env: map[string]string{
-			"REDIS_PASSWORD": viper.GetString("redis.password"),
-		},
+		Name:         containerName,
+		Image:        imageName,
+		Env:          env,
 		Networks:     []string{sharedNetwork},
-		Cmd:          []string{"redis-server", "--requirepass", viper.GetString("redis.password")},
-		WaitingFor:   wait.ForListeningPort("6379/tcp"),
+		Cmd:          cmd,
+		WaitingFor:   wait.ForListeningPort(nat.Port(waitingSignal)),
 		ExposedPorts: []string{},
 	}
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -31,7 +28,7 @@ func StartRedisContainer(ctx context.Context, sharedNetwork, version string) (*R
 		Started:          true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start cache container: %w", err)
 	}
 
 	_, err = container.Host(ctx)
@@ -39,16 +36,11 @@ func StartRedisContainer(ctx context.Context, sharedNetwork, version string) (*R
 		container.Terminate(ctx)
 		return nil, err
 	}
-	_, err = container.MappedPort(ctx, "6379")
-	if err != nil {
-		container.Terminate(ctx)
-		return nil, err
-	}
 
-	return &RedisContainer{Container: container}, nil
+	return &CacheContainer{Container: container}, nil
 }
 
-func (r *RedisContainer) Terminate(ctx context.Context) error {
+func (r *CacheContainer) Terminate(ctx context.Context) error {
 	if r.Container != nil {
 		return r.Container.Terminate(ctx)
 	}

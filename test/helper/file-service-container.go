@@ -13,16 +13,15 @@ type FileServiceContainer struct {
 	Container testcontainers.Container
 }
 
-func StartFileServiceContainer(ctx context.Context, sharedNetwork, version string) (*FileServiceContainer, error) {
-	image := fmt.Sprintf("10.1.20.130:5001/dropping/file-service:%s", version)
+func StartFileServiceContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*FileServiceContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:  "test_file_service",
-		Image: image,
-		Env:        map[string]string{"ENV": "test"},
-		Networks:   []string{sharedNetwork},
-		Cmd:        []string{"/file_service"},
+		Name:         containerName,
+		Image:        imageName,
+		Env:          env,
+		Networks:     []string{sharedNetwork},
+		Cmd:          cmd,
 		ExposedPorts: []string{},
-		WaitingFor: wait.ForLog("gRPC server running in port").WithStartupTimeout(30 * time.Second),
+		WaitingFor:   wait.ForLog("waitingSignal").WithStartupTimeout(30 * time.Second),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -30,7 +29,7 @@ func StartFileServiceContainer(ctx context.Context, sharedNetwork, version strin
 		Started:          true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to start file service container: %w", err)
 	}
 
 	return &FileServiceContainer{
