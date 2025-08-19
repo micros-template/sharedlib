@@ -12,17 +12,23 @@ import (
 type StorageContainer struct {
 	testcontainers.Container
 }
+type StorageParameterOption struct {
+	context                                                context.Context
+	sharedNetwork, imageName, containerName, waitingSignal string
+	cmd                                                    []string
+	env                                                    map[string]string
+}
 
-func StartStorageContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*StorageContainer, error) {
+func StartStorageContainer(opt StorageParameterOption) (*StorageContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:       containerName,
-		Image:      imageName,
-		Env:        env,
-		Networks:   []string{sharedNetwork},
-		Cmd:        cmd,
-		WaitingFor: wait.ForLog(waitingSignal).WithStartupTimeout(30 * time.Second),
+		Name:       opt.containerName,
+		Image:      opt.imageName,
+		Env:        opt.env,
+		Networks:   []string{opt.sharedNetwork},
+		Cmd:        opt.cmd,
+		WaitingFor: wait.ForLog(opt.waitingSignal).WithStartupTimeout(30 * time.Second),
 	}
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
@@ -30,9 +36,9 @@ func StartStorageContainer(ctx context.Context, sharedNetwork, imageName, contai
 		return nil, fmt.Errorf("failed to start storage container: %w", err)
 	}
 
-	_, err = container.Host(ctx)
+	_, err = container.Host(opt.context)
 	if err != nil {
-		container.Terminate(ctx)
+		container.Terminate(opt.context)
 		return nil, err
 	}
 

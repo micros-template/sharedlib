@@ -13,32 +13,39 @@ import (
 type MessageQueueContainer struct {
 	Container testcontainers.Container
 }
+type MessageQueueParameterOption struct {
+	context                                         context.Context
+	sharedNetwork, imageName, containerName         string
+	mqConfigPath, mqInsideConfigPath, waitingSignal string
+	mappedPort, cmd                                 []string
+	env                                             map[string]string
+}
 
-func StartMessageQueueContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal, mqConfigPath, mqInsideConfigPath string, mappedPort, cmd []string, env map[string]string) (*MessageQueueContainer, error) {
+func StartMessageQueueContainer(opt MessageQueueParameterOption) (*MessageQueueContainer, error) {
 
-	natsConfigContent, err := os.ReadFile(mqConfigPath)
+	natsConfigContent, err := os.ReadFile(opt.mqConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read NATS config file: %w", err)
 	}
 
 	req := testcontainers.ContainerRequest{
-		Name:         containerName,
-		Image:        imageName,
-		ExposedPorts: mappedPort,
-		WaitingFor:   wait.ForLog(waitingSignal),
-		Env:          env,
-		Networks:     []string{sharedNetwork},
-		Cmd:          cmd,
+		Name:         opt.containerName,
+		Image:        opt.imageName,
+		ExposedPorts: opt.mappedPort,
+		WaitingFor:   wait.ForLog(opt.waitingSignal),
+		Env:          opt.env,
+		Networks:     []string{opt.sharedNetwork},
+		Cmd:          opt.cmd,
 		Files: []testcontainers.ContainerFile{
 			{
 				Reader:            strings.NewReader(string(natsConfigContent)),
-				ContainerFilePath: mqInsideConfigPath,
+				ContainerFilePath: opt.mqInsideConfigPath,
 				FileMode:          0644,
 			},
 		},
 	}
 
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
@@ -46,9 +53,9 @@ func StartMessageQueueContainer(ctx context.Context, sharedNetwork, imageName, c
 		return nil, fmt.Errorf("failed to start message queue container: %w", err)
 	}
 
-	_, err = container.Host(ctx)
+	_, err = container.Host(opt.context)
 	if err != nil {
-		container.Terminate(ctx)
+		container.Terminate(opt.context)
 		return nil, err
 	}
 

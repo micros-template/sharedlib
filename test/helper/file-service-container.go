@@ -9,22 +9,29 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
+type FileServiceParameterOption struct {
+	context                                                context.Context
+	sharedNetwork, imageName, containerName, waitingSignal string
+	cmd                                                    []string
+	env                                                    map[string]string
+}
+
 type FileServiceContainer struct {
 	Container testcontainers.Container
 }
 
-func StartFileServiceContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*FileServiceContainer, error) {
+func StartFileServiceContainer(opt FileServiceParameterOption) (*FileServiceContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:         containerName,
-		Image:        imageName,
-		Env:          env,
-		Networks:     []string{sharedNetwork},
-		Cmd:          cmd,
+		Name:         opt.containerName,
+		Image:        opt.imageName,
+		Env:          opt.env,
+		Networks:     []string{opt.sharedNetwork},
+		Cmd:          opt.cmd,
 		ExposedPorts: []string{},
-		WaitingFor:   wait.ForLog("waitingSignal").WithStartupTimeout(30 * time.Second),
+		WaitingFor:   wait.ForLog(opt.waitingSignal).WithStartupTimeout(30 * time.Second),
 	}
 
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})

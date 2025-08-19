@@ -12,18 +12,24 @@ import (
 type AuthServiceContainer struct {
 	Container testcontainers.Container
 }
+type AuthServiceParameterOption struct {
+	context                                                context.Context
+	sharedNetwork, imageName, containerName, waitingSignal string
+	cmd                                                    []string
+	env                                                    map[string]string
+}
 
-func StartAuthServiceContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*AuthServiceContainer, error) {
+func StartAuthServiceContainer(opt AuthServiceParameterOption) (*AuthServiceContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:       containerName,
-		Image:      imageName,
-		Env:        env,
-		Networks:   []string{sharedNetwork},
-		Cmd:        cmd,
-		WaitingFor: wait.ForLog(waitingSignal).WithStartupTimeout(30 * time.Second),
+		Name:       opt.containerName,
+		Image:      opt.imageName,
+		Env:        opt.env,
+		Networks:   []string{opt.sharedNetwork},
+		Cmd:        opt.cmd,
+		WaitingFor: wait.ForLog(opt.waitingSignal).WithStartupTimeout(30 * time.Second),
 	}
 
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})

@@ -13,15 +13,21 @@ type MailContainer struct {
 	testcontainers.Container
 }
 
-func StartMailContainer(ctx context.Context, networkName, imageName, containerName, waitingSignal string, mappedPort []string) (*MailContainer, error) {
+type MailParameterOption struct {
+	context                                                context.Context
+	sharedNetwork, imageName, containerName, waitingSignal string
+	mappedPort                                             []string
+}
+
+func StartMailContainer(opt MailParameterOption) (*MailContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:         containerName,
-		Image:        imageName,
-		ExposedPorts: mappedPort,
-		Networks:     []string{networkName},
-		WaitingFor:   wait.ForListeningPort(nat.Port(waitingSignal)),
+		Name:         opt.containerName,
+		Image:        opt.imageName,
+		ExposedPorts: opt.mappedPort,
+		Networks:     []string{opt.sharedNetwork},
+		WaitingFor:   wait.ForListeningPort(nat.Port(opt.waitingSignal)),
 	}
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
@@ -29,12 +35,7 @@ func StartMailContainer(ctx context.Context, networkName, imageName, containerNa
 		return nil, fmt.Errorf("failed to start mail container: %w", err)
 	}
 
-	_, err = container.Host(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = container.MappedPort(ctx, nat.Port(waitingSignal))
+	_, err = container.Host(opt.context)
 	if err != nil {
 		return nil, err
 	}

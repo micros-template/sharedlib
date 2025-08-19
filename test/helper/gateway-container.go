@@ -13,38 +13,45 @@ import (
 type GatewayContainer struct {
 	Container testcontainers.Container
 }
+type GatewayParameterOption struct {
+	context                                                       context.Context
+	sharedNetwork, imageName, containerName                       string
+	nginxConfigPath, nginxInsideConfigPath                        string
+	grpcErrorConfigPath, grpcErrorInsideConfigPath, waitingSignal string
+	mappedPort                                                    []string
+}
 
-func StartGatewayContainer(ctx context.Context, sharedNetwork, imageName, containerName, nginxConfigPath, nginxInsideConfigPath, grpcErrorConfigPath, grpcErrorInsideConfigPath, waitingSignal string, mappedPort []string) (*GatewayContainer, error) {
-	nginxConfigContent, err := os.ReadFile(nginxConfigPath)
+func StartGatewayContainer(opt GatewayParameterOption) (*GatewayContainer, error) {
+	nginxConfigContent, err := os.ReadFile(opt.nginxConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read nginx config file: %w", err)
 	}
 
-	grpcErrorConfigContent, err := os.ReadFile(grpcErrorConfigPath)
+	grpcErrorConfigContent, err := os.ReadFile(opt.grpcErrorConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read error.grpc_conf file: %w", err)
 	}
 	req := testcontainers.ContainerRequest{
-		Name:         containerName,
-		Image:        imageName,
-		ExposedPorts: mappedPort,
-		WaitingFor:   wait.ForLog(waitingSignal),
-		Networks:     []string{sharedNetwork},
+		Name:         opt.containerName,
+		Image:        opt.imageName,
+		ExposedPorts: opt.mappedPort,
+		WaitingFor:   wait.ForLog(opt.waitingSignal),
+		Networks:     []string{opt.sharedNetwork},
 		Files: []testcontainers.ContainerFile{
 			{
 				Reader:            strings.NewReader(string(nginxConfigContent)),
-				ContainerFilePath: nginxInsideConfigPath,
+				ContainerFilePath: opt.nginxInsideConfigPath,
 				FileMode:          0644,
 			},
 			{
 				Reader:            strings.NewReader(string(grpcErrorConfigContent)),
-				ContainerFilePath: grpcErrorInsideConfigPath,
+				ContainerFilePath: opt.grpcErrorInsideConfigPath,
 				FileMode:          0644,
 			},
 		},
 	}
 
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
@@ -53,9 +60,9 @@ func StartGatewayContainer(ctx context.Context, sharedNetwork, imageName, contai
 
 	}
 
-	_, err = container.Host(ctx)
+	_, err = container.Host(opt.context)
 	if err != nil {
-		container.Terminate(ctx)
+		container.Terminate(opt.context)
 		return nil, err
 	}
 

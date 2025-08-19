@@ -13,17 +13,24 @@ type NotificationServiceContainer struct {
 	Container testcontainers.Container
 }
 
-func StartNotificationServiceContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*NotificationServiceContainer, error) {
+type NotificationServiceParameterOption struct {
+	context                                                context.Context
+	sharedNetwork, imageName, containerName, waitingSignal string
+	cmd                                                    []string
+	env                                                    map[string]string
+}
+
+func StartNotificationServiceContainer(opt NotificationServiceParameterOption) (*NotificationServiceContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:       containerName,
-		Image:      imageName,
-		Env:        env,
-		Networks:   []string{sharedNetwork},
-		Cmd:        cmd,
-		WaitingFor: wait.ForLog(waitingSignal).WithStartupTimeout(30 * time.Second),
+		Name:       opt.containerName,
+		Image:      opt.imageName,
+		Env:        opt.env,
+		Networks:   []string{opt.sharedNetwork},
+		Cmd:        opt.cmd,
+		WaitingFor: wait.ForLog(opt.waitingSignal).WithStartupTimeout(30 * time.Second),
 	}
 
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})

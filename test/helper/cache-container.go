@@ -12,18 +12,24 @@ import (
 type CacheContainer struct {
 	testcontainers.Container
 }
+type CacheParameterOption struct {
+	context                                                context.Context
+	sharedNetwork, imageName, containerName, waitingSignal string
+	cmd                                                    []string
+	env                                                    map[string]string
+}
 
-func StartCacheContainer(ctx context.Context, sharedNetwork, imageName, containerName, waitingSignal string, cmd []string, env map[string]string) (*CacheContainer, error) {
+func StartCacheContainer(opt CacheParameterOption) (*CacheContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:         containerName,
-		Image:        imageName,
-		Env:          env,
-		Networks:     []string{sharedNetwork},
-		Cmd:          cmd,
-		WaitingFor:   wait.ForListeningPort(nat.Port(waitingSignal)),
+		Name:         opt.containerName,
+		Image:        opt.imageName,
+		Env:          opt.env,
+		Networks:     []string{opt.sharedNetwork},
+		Cmd:          opt.cmd,
+		WaitingFor:   wait.ForListeningPort(nat.Port(opt.waitingSignal)),
 		ExposedPorts: []string{},
 	}
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
@@ -31,9 +37,9 @@ func StartCacheContainer(ctx context.Context, sharedNetwork, imageName, containe
 		return nil, fmt.Errorf("failed to start cache container: %w", err)
 	}
 
-	_, err = container.Host(ctx)
+	_, err = container.Host(opt.context)
 	if err != nil {
-		container.Terminate(ctx)
+		container.Terminate(opt.context)
 		return nil, err
 	}
 
