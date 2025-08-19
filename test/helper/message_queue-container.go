@@ -14,38 +14,38 @@ type MessageQueueContainer struct {
 	Container testcontainers.Container
 }
 type MessageQueueParameterOption struct {
-	context                                         context.Context
-	sharedNetwork, imageName, containerName         string
-	mqConfigPath, mqInsideConfigPath, waitingSignal string
-	mappedPort, cmd                                 []string
-	env                                             map[string]string
+	Context                                         context.Context
+	SharedNetwork, ImageName, ContainerName         string
+	MQConfigPath, MQInsideConfigPath, WaitingSignal string
+	MappedPort, Cmd                                 []string
+	Env                                             map[string]string
 }
 
 func StartMessageQueueContainer(opt MessageQueueParameterOption) (*MessageQueueContainer, error) {
 
-	natsConfigContent, err := os.ReadFile(opt.mqConfigPath)
+	natsConfigContent, err := os.ReadFile(opt.MQConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read NATS config file: %w", err)
 	}
 
 	req := testcontainers.ContainerRequest{
-		Name:         opt.containerName,
-		Image:        opt.imageName,
-		ExposedPorts: opt.mappedPort,
-		WaitingFor:   wait.ForLog(opt.waitingSignal),
-		Env:          opt.env,
-		Networks:     []string{opt.sharedNetwork},
-		Cmd:          opt.cmd,
+		Name:         opt.ContainerName,
+		Image:        opt.ImageName,
+		ExposedPorts: opt.MappedPort,
+		WaitingFor:   wait.ForLog(opt.WaitingSignal),
+		Env:          opt.Env,
+		Networks:     []string{opt.SharedNetwork},
+		Cmd:          opt.Cmd,
 		Files: []testcontainers.ContainerFile{
 			{
 				Reader:            strings.NewReader(string(natsConfigContent)),
-				ContainerFilePath: opt.mqInsideConfigPath,
+				ContainerFilePath: opt.MQInsideConfigPath,
 				FileMode:          0644,
 			},
 		},
 	}
 
-	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.Context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
@@ -53,9 +53,9 @@ func StartMessageQueueContainer(opt MessageQueueParameterOption) (*MessageQueueC
 		return nil, fmt.Errorf("failed to start message queue container: %w", err)
 	}
 
-	_, err = container.Host(opt.context)
+	_, err = container.Host(opt.Context)
 	if err != nil {
-		container.Terminate(opt.context)
+		container.Terminate(opt.Context)
 		return nil, err
 	}
 

@@ -14,20 +14,20 @@ type MailContainer struct {
 }
 
 type MailParameterOption struct {
-	context                                                context.Context
-	sharedNetwork, imageName, containerName, waitingSignal string
-	mappedPort                                             []string
+	Context                                                context.Context
+	SharedNetwork, ImageName, ContainerName, WaitingSignal string
+	MappedPort                                             []string
 }
 
 func StartMailContainer(opt MailParameterOption) (*MailContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:         opt.containerName,
-		Image:        opt.imageName,
-		ExposedPorts: opt.mappedPort,
-		Networks:     []string{opt.sharedNetwork},
-		WaitingFor:   wait.ForListeningPort(nat.Port(opt.waitingSignal)),
+		Name:         opt.ContainerName,
+		Image:        opt.ImageName,
+		ExposedPorts: opt.MappedPort,
+		Networks:     []string{opt.SharedNetwork},
+		WaitingFor:   wait.ForListeningPort(nat.Port(opt.WaitingSignal)),
 	}
-	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.Context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
@@ -35,7 +35,7 @@ func StartMailContainer(opt MailParameterOption) (*MailContainer, error) {
 		return nil, fmt.Errorf("failed to start mail container: %w", err)
 	}
 
-	_, err = container.Host(opt.context)
+	_, err = container.Host(opt.Context)
 	if err != nil {
 		return nil, err
 	}

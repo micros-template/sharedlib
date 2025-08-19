@@ -10,10 +10,10 @@ import (
 )
 
 type FileServiceParameterOption struct {
-	context                                                context.Context
-	sharedNetwork, imageName, containerName, waitingSignal string
-	cmd                                                    []string
-	env                                                    map[string]string
+	Context                                                context.Context
+	SharedNetwork, ImageName, ContainerName, WaitingSignal string
+	Cmd                                                    []string
+	Env                                                    map[string]string
 }
 
 type FileServiceContainer struct {
@@ -22,16 +22,16 @@ type FileServiceContainer struct {
 
 func StartFileServiceContainer(opt FileServiceParameterOption) (*FileServiceContainer, error) {
 	req := testcontainers.ContainerRequest{
-		Name:         opt.containerName,
-		Image:        opt.imageName,
-		Env:          opt.env,
-		Networks:     []string{opt.sharedNetwork},
-		Cmd:          opt.cmd,
+		Name:         opt.ContainerName,
+		Image:        opt.ImageName,
+		Env:          opt.Env,
+		Networks:     []string{opt.SharedNetwork},
+		Cmd:          opt.Cmd,
 		ExposedPorts: []string{},
-		WaitingFor:   wait.ForLog(opt.waitingSignal).WithStartupTimeout(30 * time.Second),
+		WaitingFor:   wait.ForLog(opt.WaitingSignal).WithStartupTimeout(30 * time.Second),
 	}
 
-	container, err := testcontainers.GenericContainer(opt.context, testcontainers.GenericContainerRequest{
+	container, err := testcontainers.GenericContainer(opt.Context, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
